@@ -1,0 +1,189 @@
+From 60a893497df9a0676e7e8afe153b9d27f1bccc8c Mon Sep 17 00:00:00 2001
+From: HeCheng Yu <kde-yyds@qq.com>
+Date: Sat, 1 Feb 2025 12:06:01 +0800
+Subject: [PATCH] Add an option to enable/disable background blur at app launch
+
+---
+ .../launcher3/QuickstepTransitionManager.java | 73 +++++++++++++++++++
+ res/values/derp_strings.xml                   |  4 +
+ res/xml/launcher_misc_preferences.xml         |  7 ++
+ src/com/android/launcher3/Utilities.java      |  7 +-
+ 4 files changed, 90 insertions(+), 1 deletion(-)
+
+diff --git a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
+index 4cd74a5..63740c5 100644
+--- a/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
++++ b/quickstep/src/com/android/launcher3/QuickstepTransitionManager.java
+@@ -84,6 +84,7 @@ import android.graphics.Point;
+ import android.graphics.PointF;
+ import android.graphics.Rect;
+ import android.graphics.RectF;
++import android.graphics.RenderEffect;
+ import android.graphics.drawable.Drawable;
+ import android.os.Handler;
+ import android.os.IBinder;
+@@ -275,6 +276,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+     // Will never be larger than MAX_NUM_TASKS
+     private LinkedHashMap<Integer, Pair<Integer, Integer>> mTaskStartParams;
+     private boolean mAreAnimationsEnabled = true;
++    private boolean mBlurBackgroundAtAppLaunch = true;
+ 
+     private final Interpolator mOpeningXInterpolator;
+     private final Interpolator mOpeningInterpolator;
+@@ -896,10 +898,13 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+         // Since we added a start delay, call update here to init the FloatingIconView properly.
+         listener.onUpdate(0, true /* initOnly */);
+ 
++        mBlurBackgroundAtAppLaunch = Utilities.blurBackgroundAtAppLaunch(mLauncher.getApplicationContext());
+         // If app targets are translucent, do not animate the background as it causes a visible
+         // flicker when it resets itself at the end of its animation.
+         if (appTargetsAreTranslucent || !launcherClosing) {
+             animatorSet.play(appAnimator);
++        } else if (mBlurBackgroundAtAppLaunch) {
++            animatorSet.playTogether(appAnimator, getBackgroundBlurAnimator());
+         } else {
+             animatorSet.playTogether(appAnimator, getBackgroundAnimator());
+         }
+@@ -1036,10 +1041,13 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+             }
+         });
+ 
++        mBlurBackgroundAtAppLaunch = Utilities.blurBackgroundAtAppLaunch(mLauncher.getApplicationContext());
+         // If app targets are translucent, do not animate the background as it causes a visible
+         // flicker when it resets itself at the end of its animation.
+         if (appTargetsAreTranslucent || !launcherClosing) {
+             animatorSet.play(appAnimator);
++        } else if (mBlurBackgroundAtAppLaunch) {
++            animatorSet.playTogether(appAnimator, getBackgroundBlurAnimator());
+         } else {
+             animatorSet.playTogether(appAnimator, getBackgroundAnimator());
+         }
+@@ -1094,6 +1102,71 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
+         return backgroundRadiusAnim;
+     }
+ 
++    private ObjectAnimator getBackgroundBlurAnimator() {
++        boolean allowBlurringLauncher = mLauncher.getStateManager().getState() != OVERVIEW
++                && BlurUtils.supportsBlursOnWindows();
++        LaunchDepthController depthController = new LaunchDepthController(mLauncher);
++        ObjectAnimator backgroundRadiusAnim = ObjectAnimator.ofFloat(depthController.stateDepth,
++                        MULTI_PROPERTY_VALUE, BACKGROUND_APP.getDepth(mLauncher))
++                .setDuration(APP_LAUNCH_DURATION);
++        if (allowBlurringLauncher) {
++            View rootView = mLauncher.getDragLayer();
++            // Create a composite SurfaceControl layer for everything behind the app animation
++            ViewRootImpl viewRootImpl = rootView.getViewRootImpl();
++            SurfaceControl parentSurface = viewRootImpl != null ? viewRootImpl.getSurfaceControl() : null;
++            if (parentSurface != null) {
++                SurfaceControl blurLayer = new SurfaceControl.Builder()
++                        .setName("Blur Layer")
++                        .setParent(parentSurface)
++                        .setOpaque(false)
++                        .setEffectLayer()
++                        .build();
++                SurfaceControl.Transaction transaction = new SurfaceControl.Transaction();
++                // Create an animator for the blur effect
++                backgroundRadiusAnim.addUpdateListener(animation -> {
++                    if (mLauncher.getStateManager().getState() == LauncherState.ALL_APPS) {
++                        return;
++                    }
++                    float maxBlurRadius = Utilities.getBlurRadius(mLauncher.getApplicationContext());
++                    float animatedValue = (float) animation.getAnimatedValue();
++                    float blurRadius = Math.min(maxBlurRadius, animatedValue * maxBlurRadius); // Scale blur with animation progress
++                    // Dynamically update blur radius
++                    if (blurLayer != null && blurLayer.isValid()) {
++                        transaction.setBackgroundBlurRadius(blurLayer, (int) blurRadius);
++                        transaction.setAlpha(blurLayer, 1f);
++                        transaction.show(blurLayer);
++                        transaction.apply();
++                    }
++                });
++                backgroundRadiusAnim.setInterpolator(mOpeningInterpolator);
++                // Cleanup on animation end or cancel
++                backgroundRadiusAnim.addListener(new AnimatorListenerAdapter() {
++                    @Override
++                    public void onAnimationEnd(Animator animation) {
++                        cleanupBlurLayer(blurLayer, transaction);
++                    }
++                    @Override
++                    public void onAnimationCancel(Animator animation) {
++                        cleanupBlurLayer(blurLayer, transaction);
++                    }
++                    private void cleanupBlurLayer(SurfaceControl blurLayer, SurfaceControl.Transaction transaction) {
++                        if (blurLayer != null && blurLayer.isValid()) {
++                            transaction.remove(blurLayer).apply();
++                            blurLayer.release(); // Release the SurfaceControl to avoid leaks
++                        }
++                    }
++                });
++            }
++        }
++        backgroundRadiusAnim.addListener(
++                AnimatorListeners.forEndCallback(() -> {
++                    depthController.stateDepth
++                            .setValue(mLauncher.getDepthController().stateDepth.getValue());
++                    depthController.dispose();
++                }));
++        return backgroundRadiusAnim;
++    }
++
+     /**
+      * Registers remote animations used when closing apps to home screen.
+      */
+diff --git a/res/values/derp_strings.xml b/res/values/derp_strings.xml
+index 0a0c354..db7b088 100644
+--- a/res/values/derp_strings.xml
++++ b/res/values/derp_strings.xml
+@@ -207,4 +207,8 @@
+ 
+     <!-- A widget category label for grouping widgets related to weather. [CHAR_LIMIT=30] -->
+     <string name="widget_category_weather">Weather</string>
++
++    <!-- Background blur at app launch-->
++    <string name="pref_blur_background_at_app_launch_title">Background blur at app launch</string>
++    <string name="pref_blur_background_at_app_launch_summary">Blur the background at app launch</string>
+ </resources>
+diff --git a/res/xml/launcher_misc_preferences.xml b/res/xml/launcher_misc_preferences.xml
+index dbe7f5f..23ebb56 100644
+--- a/res/xml/launcher_misc_preferences.xml
++++ b/res/xml/launcher_misc_preferences.xml
+@@ -43,6 +43,13 @@
+         settings:units="px"
+         android:defaultValue="0" />
+ 
++     <SwitchPreferenceCompat
++         android:key="pref_blur_background_at_app_launch"
++         android:title="@string/pref_blur_background_at_app_launch_title"
++         android:summary="@string/pref_blur_background_at_app_launch_summary"
++         android:defaultValue="true"
++         android:persistent="true" />
++
+     <androidx.preference.PreferenceScreen
+         android:persistent="false"
+         android:title="@string/suggestion_pref_screen_title"
+diff --git a/src/com/android/launcher3/Utilities.java b/src/com/android/launcher3/Utilities.java
+index 5938c17..31dcacb 100644
+--- a/src/com/android/launcher3/Utilities.java
++++ b/src/com/android/launcher3/Utilities.java
+@@ -191,7 +191,7 @@ public final class Utilities {
+     public static final String KEY_RECENTS_CHIPS = "pref_recents_chips";
+     public static final String KEY_AUTO_KEYABORD = "pref_auto_keyboard";
+     public static final String KEY_SMARTSPACE = "pref_smartspace";
+-
++    public static final String KEY_BLUR_BACKGROUND_AT_APP_LAUNCH = "pref_blur_background_at_app_launch";
+     /**
+      * Returns true if theme is dark.
+      */
+@@ -1128,4 +1128,9 @@ public final class Utilities {
+         SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
+         return prefs.getBoolean(KEY_SMARTSPACE, true);
+     }
++
++    public static boolean blurBackgroundAtAppLaunch(Context context) {
++        SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
++        return prefs.getBoolean(KEY_BLUR_BACKGROUND_AT_APP_LAUNCH, true);
++    }
+ }
+-- 
+2.48.1
+
