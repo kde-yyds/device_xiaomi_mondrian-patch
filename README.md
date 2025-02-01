@@ -53,7 +53,7 @@ cp -r /lib64/libyaml-0.so.2.0.9 prebuilts/kernel-build-tools/linux-x86/lib64/lib
 Switch to bash if you are not on it.
 ```
 . build/envsetup.sh
-lunch derp_$device-userdebug
+lunch derp_mondrian-userdebug
 mka derp
 ```
 Then wait for hours until the build progress complete.
