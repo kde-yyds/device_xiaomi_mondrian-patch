@@ -1,0 +1,28 @@
+From 77bd970ab0ea395628e72534f3aafaf2345090c8 Mon Sep 17 00:00:00 2001
+From: HeCheng Yu <kde-yyds@qq.com>
+Date: Sat, 1 Feb 2025 21:10:21 +0800
+Subject: [PATCH] Add GMS flags for Matrixx
+
+---
+ lineage_mondrian.mk | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/lineage_mondrian.mk b/lineage_mondrian.mk
+index 1d78b92..ec872cd 100644
+--- a/lineage_mondrian.mk
++++ b/lineage_mondrian.mk
+@@ -29,3 +29,11 @@ TARGET_BOOT_ANIMATION_RES := 1440
+ 
+ WITH_GMS := true
+ TARGET_HAS_UDFPS := true
++
++# To Build Pixel launcher
++#TARGET_INCLUDE_NEXUS := true
++
++#Some more GMS Flag
++TARGET_SUPPORTS_GOOGLE_RECORDER := true
++TARGET_INCLUDE_STOCK_ARCORE := true
++TARGET_INCLUDE_STOCK_AICORE := true
+-- 
+2.48.1
+
