@@ -1,0 +1,57 @@
+From ad17c07e551e9a69b5e2b19daaaf056cf9b874f6 Mon Sep 17 00:00:00 2001
+From: HeCheng Yu <kde-yyds@qq.com>
+Date: Sat, 1 Feb 2025 12:18:00 +0800
+Subject: [PATCH] adapt to derpfest
+
+---
+ AndroidProducts.mk                      | 7 +------
+ BoardConfig.mk                          | 4 ++--
+ lineage_mondrian.mk => derp_mondrian.mk | 0
+ 3 files changed, 3 insertions(+), 8 deletions(-)
+ rename lineage_mondrian.mk => derp_mondrian.mk (100%)
+
+diff --git a/AndroidProducts.mk b/AndroidProducts.mk
+index ff75e87..f3eba1f 100644
+--- a/AndroidProducts.mk
++++ b/AndroidProducts.mk
+@@ -5,9 +5,4 @@
+ #
+ 
+ PRODUCT_MAKEFILES := \
+-    $(LOCAL_DIR)/lineage_mondrian.mk
+-
+-COMMON_LUNCH_CHOICES := \
+-    lineage_mondrian-user \
+-    lineage_mondrian-userdebug \
+-    lineage_mondrian-eng
+\ No newline at end of file
++    $(LOCAL_DIR)/derp_mondrian.mk
+diff --git a/BoardConfig.mk b/BoardConfig.mk
+index 75af73a..909f8fe 100644
+--- a/BoardConfig.mk
++++ b/BoardConfig.mk
+@@ -112,7 +112,7 @@ DEVICE_MANIFEST_TARO_FILES := $(DEVICE_MANIFEST_CAPE_FILES)
+ DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := \
+     $(DEVICE_PATH)/configs/vintf/vendor_framework_compatibility_matrix.xml \
+     $(DEVICE_PATH)/configs/vintf/xiaomi_framework_compatibility_matrix.xml \
+-    vendor/lineage/config/device_framework_matrix.xml
++    vendor/derp/config/device_framework_matrix.xml
+ 
+ DEVICE_FRAMEWORK_MANIFEST_FILE += $(DEVICE_PATH)/configs/vintf/framework_manifest.xml
+ 
+@@ -197,7 +197,7 @@ TARGET_COPY_OUT_SYSTEM_EXT := system_ext
+ TARGET_COPY_OUT_VENDOR := vendor
+ TARGET_COPY_OUT_VENDOR_DLKM := vendor_dlkm
+ 
+--include vendor/lineage/config/BoardConfigReservedSize.mk
++-include vendor/derp/config/BoardConfigReservedSize.mk
+ 
+ # Platform
+ BOARD_USES_QCOM_HARDWARE := true
+diff --git a/lineage_mondrian.mk b/derp_mondrian.mk
+similarity index 100%
+rename from lineage_mondrian.mk
+rename to derp_mondrian.mk
+-- 
+2.48.1
+
