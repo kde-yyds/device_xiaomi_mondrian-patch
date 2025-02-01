@@ -1,0 +1,26 @@
+From 76c01440babc250f761490e3de1daa3281cb9727 Mon Sep 17 00:00:00 2001
+From: HeCheng Yu <kde-yyds@qq.com>
+Date: Sat, 1 Feb 2025 12:20:59 +0800
+Subject: [PATCH] inherit from lindroid
+
+---
+ device.mk | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/device.mk b/device.mk
+index 9c5cb1d..373c29b 100644
+--- a/device.mk
++++ b/device.mk
+@@ -26,6 +26,9 @@ $(call inherit-product, frameworks/native/build/phone-xhdpi-6144-dalvik-heap.mk)
+ # Inherit from the proprietary version
+ $(call inherit-product, vendor/xiaomi/mondrian/mondrian-vendor.mk)
+ 
++# Inherit from lindroid
++$(call inherit-product, vendor/lindroid/lindroid.mk)
++
+ # Platform
+ TARGET_BOARD_PLATFORM := taro
+ 
+-- 
+2.48.1
+
