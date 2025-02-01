@@ -12,7 +12,7 @@ Switch to a working directory.
 mkdir derpfest
 cd derpfest
 ```
-#### RisingOS
+#### Derpfest
 ```
 repo init -u https://github.com/DerpFest-AOSP/manifest.git -b 15 --depth=1
 repo sync -c --no-clone-bundle --optimized-fetch --prune --force-sync -j$(nproc --all)
