@@ -1,0 +1,39 @@
+From a624d398f9ec35d8d842f286a8170c2d3ba56fe3 Mon Sep 17 00:00:00 2001
+From: HeCheng Yu <kde-yyds@qq.com>
+Date: Sun, 2 Feb 2025 14:12:33 +0800
+Subject: [PATCH] Make animation slower
+
+---
+ core/res/res/values/config.xml | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
+index 8a1720554..c204b48f9 100644
+--- a/core/res/res/values/config.xml
++++ b/core/res/res/values/config.xml
+@@ -144,17 +144,17 @@
+     <bool name="config_disableTransitionAnimation">false</bool>
+ 
+     <!-- The duration (in milliseconds) of a short animation. -->
+-    <integer name="config_shortAnimTime">100</integer>
++    <integer name="config_shortAnimTime">200</integer>
+ 
+     <!-- The duration (in milliseconds) of a medium-length animation. -->
+-    <integer name="config_mediumAnimTime">200</integer>
++    <integer name="config_mediumAnimTime">400</integer>
+ 
+     <!-- The duration (in milliseconds) of a long animation. -->
+-    <integer name="config_longAnimTime">250</integer>
++    <integer name="config_longAnimTime">500</integer>
+ 
+     <!-- The duration (in milliseconds) of the activity open/close and fragment open/close animations. -->
+-    <integer name="config_activityShortDur">72</integer>
+-    <integer name="config_activityDefaultDur">106</integer>
++    <integer name="config_activityShortDur">150</integer>
++    <integer name="config_activityDefaultDur">220</integer>
+ 
+     <!-- Fade out time for screen rotation -->
+     <integer name="config_screen_rotation_fade_out">116</integer>
+-- 
+2.48.1
+
