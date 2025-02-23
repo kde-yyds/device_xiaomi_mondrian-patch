@@ -1,0 +1,26 @@
+From 10cd01ae2ea6256cd73d873ba86584a4b363f68e Mon Sep 17 00:00:00 2001
+From: Hecheng Yu <kde-yyds@qq.com>
+Date: Sun, 23 Feb 2025 09:18:25 +0800
+Subject: [PATCH] fix duplicate include
+
+Change-Id: Ie88b59e617ad780c67d8be535179caaa89666d64
+---
+ utils/inc/ChargerListener.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/utils/inc/ChargerListener.h b/utils/inc/ChargerListener.h
+index 23f2354..d55e108 100644
+--- a/utils/inc/ChargerListener.h
++++ b/utils/inc/ChargerListener.h
+@@ -31,7 +31,7 @@
+ 
+ #include <sys/epoll.h>
+ #ifdef ANDROID
+-#include <bits/epoll_event.h>
++//#include <bits/epoll_event.h>
+ #else
+ #include <fcntl.h>
+ #include <cstring>
+-- 
+2.48.1
+

@@ -116,18 +116,7 @@ clone_repositories() {
 # Function to fix audio issues
 fix_audio() {
     echo "Fixing sm8450 audio issues..."
-    rm -rf hardware/qcom-caf/sm8450/audio/agm hardware/qcom-caf/sm8450/audio/pal
-    retry_command "git clone https://github.com/LineageOS/android_vendor_qcom_opensource_agm hardware/qcom-caf/sm8450/audio/agm/"
-    retry_command "git clone https://github.com/LineageOS/android_vendor_qcom_opensource_arpal-lx hardware/qcom-caf/sm8450/audio/pal/"
-
-    # Checkout specific commits
-    cd hardware/qcom-caf/sm8450/audio/agm/
-    try_command "git checkout 62ac0643c907e9566ed99929d947127d8e3b123e"
-    cd ../../../../../
-
-    cd hardware/qcom-caf/sm8450/audio/pal/
-    try_command "git checkout 4dfc6be2ac56b7d4aa5b2d919823e612ce1c711b"
-    cd ../../../../../
+    retry_command "git clone --depth=1 https://github.com/LineageOS/android_vendor_qcom_opensource_audioreach-graphservices hardware/qcom-caf/sm8450/audio/graphservices --branch=lineage-22.1-caf-sm8450"
 }
 
 # Function to apply patches
