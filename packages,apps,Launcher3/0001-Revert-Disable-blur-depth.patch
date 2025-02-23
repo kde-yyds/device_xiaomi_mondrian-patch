@@ -1,0 +1,52 @@
+From 27796c4f4b8cb12d0d808894b04b7bcdc06a01ff Mon Sep 17 00:00:00 2001
+From: Hecheng Yu <kde-yyds@qq.com>
+Date: Sun, 23 Feb 2025 11:00:18 +0800
+Subject: [PATCH] Revert "Disable blur depth"
+
+This reverts commit 7fbe1c7d6f1337a5a1cd077bfd24a1b03394bcec.
+
+Commit "Disable blur depth" completely disables blur in app drawer,
+recents and app launch. So we should revert it.
+---
+ res/xml/launcher_misc_preferences.xml    | 10 ++++++++++
+ src/com/android/launcher3/Utilities.java |  3 ++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/res/xml/launcher_misc_preferences.xml b/res/xml/launcher_misc_preferences.xml
+index aea2ddbf50..7dc5733449 100644
+--- a/res/xml/launcher_misc_preferences.xml
++++ b/res/xml/launcher_misc_preferences.xml
+@@ -42,6 +42,16 @@
+         android:title="@string/trust_apps_manager_name"
+         android:layout="@layout/settings_layout_middle_no_summary" />
+ 
++     <com.android.launcher3.settings.preferences.CustomSeekBarPreference
++        android:key="pref_blur_depth"
++        android:title="@string/background_blur_title"
++        android:summary="@string/background_blur_summary"
++        android:persistent="true"
++        android:max="175"
++        android:min="0"
++        settings:units="px"
++        android:defaultValue="23" />
++
+     <androidx.preference.PreferenceScreen
+         android:persistent="false"
+         android:layout="@layout/settings_layout_middle"
+diff --git a/src/com/android/launcher3/Utilities.java b/src/com/android/launcher3/Utilities.java
+index c5c01ae03e..61f14c5949 100644
+--- a/src/com/android/launcher3/Utilities.java
++++ b/src/com/android/launcher3/Utilities.java
+@@ -1150,7 +1150,8 @@ public final class Utilities {
+ 
+     public static int getBlurRadius(Context context) {
+         SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
+-        return prefs.getInt(KEY_BLUR_DEPTH, 0);
++        return prefs.getInt(KEY_BLUR_DEPTH,
++                (int) context.getResources().getDimension(R.dimen.max_depth_blur_radius));
+     }
+ 
+     public static boolean isShortParallax(Context context) {
+-- 
+2.48.1
+
