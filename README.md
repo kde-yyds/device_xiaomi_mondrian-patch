@@ -128,7 +128,7 @@ Then wait for hours until the build progress complete.
 You’ve done it! Welcome to the elite club of self-builders. You’ve built your operating system from scratch, from the ground up. You are the master/mistress of your domain… and hopefully you’ve learned a bit on the way and had some fun too.  
 # Do you need some testing before flash?
 ## DSU
-Select `odm` `product` `system` `system_ext` `vendor` `product` images and compress them into a zip (select Store).  
+Select `odm` `product` `system` `system_ext` `vendor` images and compress them into a zip (select Store).  
 Push to your mondrian.  
 Install with DSU Sideloader, reboot and test.
 
